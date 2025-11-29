@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">Book Appointment</div>
+            <div class="card-body">
+                <form action="{{ url_for('book_appointment') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Select Doctor</label>
+                        <select class="form-select" name="doctor_id" required>
+                            <option value="" selected disabled>Choose...</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.name }} ({{ doctor.specialization }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" name="date" required min="{{ now_date }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Time</label>
+                        <input type="time" class="form-control" name="time" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Book Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">My Appointments</div>
+            <div class="card-body">
+                {% if appointments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in appointments %}
+                            <tr>
+                                <td>{{ appt.doctor.name }} ({{ appt.doctor.specialization }})</td>
+                                <td>{{ appt.date_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <span
+                                        class="badge bg-{{ 'success' if appt.status == 'Completed' else 'warning' if appt.status == 'Booked' else 'danger' }}">
+                                        {{ appt.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if appt.status == 'Completed' %}
+                                    <a href="{{ url_for('patient_history', patient_id=current_user.id) }}"
+                                        class="btn btn-secondary btn-sm">View Prescription</a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No appointments found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set min date to today
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        dateInput.min = new Date().toISOString().split("T")[0];
+    }
+</script>
+{% endblock %}

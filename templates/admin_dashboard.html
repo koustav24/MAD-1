@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Doctors</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ doctor_count }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Patients</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ patient_count }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Appointments</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ appointment_count }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Manage Doctors</div>
+            <div class="card-body">
+                <form action="{{ url_for('add_doctor') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" class="form-control" name="specialization" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Doctor</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Doctor List</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for doctor in doctors %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ doctor.name }} ({{ doctor.specialization }})
+                        <a href="{{ url_for('delete_user', user_id=doctor.id) }}"
+                            class="btn btn-danger btn-sm">Delete</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">All Appointments</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td>{{ appt.patient.name }}</td>
+                            <td>{{ appt.doctor.name }}</td>
+                            <td>{{ appt.date_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <span
+                                    class="badge bg-{{ 'success' if appt.status == 'Completed' else 'warning' if appt.status == 'Booked' else 'danger' }}">
+                                    {{ appt.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
