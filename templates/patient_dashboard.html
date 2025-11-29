@@ -1,6 +1,48 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">My Profile</h5>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#editProfileModal">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('edit_profile') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" name="password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-4">
         <div class="card mb-4">
@@ -9,7 +51,7 @@
                 <form action="{{ url_for('book_appointment') }}" method="POST">
                     <div class="mb-3">
                         <label class="form-label">Select Doctor</label>
-                        <select class="form-select" name="doctor_id" required>
+                        <select class="form-select" name="doctor_id" id="doctorSelect" required onchange="resetSlots()">
                             <option value="" selected disabled>Choose...</option>
                             {% for doctor in doctors %}
                             <option value="{{ doctor.id }}">{{ doctor.name }} ({{ doctor.specialization }})</option>
@@ -18,13 +60,28 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Date</label>
-                        <input type="date" class="form-control" name="date" required min="{{ now_date }}">
+                        <input type="date" class="form-control" name="date" id="dateSelect" required
+                            onchange="fetchSlots()">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Time</label>
-                        <input type="time" class="form-control" name="time" required>
+                        <label class="form-label">Available Time Slots</label>
+                        <select class="form-select" name="time" id="timeSelect" required disabled>
+                            <option value="" selected disabled>Select Date First</option>
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Book Now</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">Search Doctors</div>
+            <div class="card-body">
+                <form action="{{ url_for('patient_dashboard') }}" method="GET">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder="Search by Specialization">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -57,7 +114,12 @@
                                     </span>
                                 </td>
                                 <td>
-                                    {% if appt.status == 'Completed' %}
+                                    {% if appt.status == 'Booked' %}
+                                    <form action="{{ url_for('cancel_appointment', appt_id=appt.id) }}" method="POST"
+                                        style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                                    </form>
+                                    {% elif appt.status == 'Completed' %}
                                     <a href="{{ url_for('patient_history', patient_id=current_user.id) }}"
                                         class="btn btn-secondary btn-sm">View Prescription</a>
                                     {% else %}
@@ -82,6 +144,45 @@
     const dateInput = document.querySelector('input[type="date"]');
     if (dateInput) {
         dateInput.min = new Date().toISOString().split("T")[0];
+    }
+
+    function resetSlots() {
+        const timeSelect = document.getElementById('timeSelect');
+        timeSelect.innerHTML = '<option value="" selected disabled>Select Date First</option>';
+        timeSelect.disabled = true;
+        document.getElementById('dateSelect').value = '';
+    }
+
+    function fetchSlots() {
+        const doctorId = document.getElementById('doctorSelect').value;
+        const dateStr = document.getElementById('dateSelect').value;
+        const timeSelect = document.getElementById('timeSelect');
+
+        if (!doctorId || !dateStr) return;
+
+        timeSelect.innerHTML = '<option value="" selected disabled>Loading...</option>';
+
+        fetch(`/get_available_slots/${doctorId}/${dateStr}`)
+            .then(response => response.json())
+            .then(data => {
+                timeSelect.innerHTML = '<option value="" selected disabled>Choose Slot...</option>';
+                if (data.slots.length === 0) {
+                    timeSelect.innerHTML = '<option value="" disabled>No slots available</option>';
+                    timeSelect.disabled = true;
+                } else {
+                    data.slots.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.start_time;
+                        option.textContent = `${slot.start_time} - ${slot.end_time}`;
+                        timeSelect.appendChild(option);
+                    });
+                    timeSelect.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                timeSelect.innerHTML = '<option value="" disabled>Error loading slots</option>';
+            });
     }
 </script>
 {% endblock %}

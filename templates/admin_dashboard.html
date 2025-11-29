@@ -56,15 +56,60 @@
         </div>
 
         <div class="card">
-            <div class="card-header">Doctor List</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Doctor List</span>
+                <form action="{{ url_for('admin_dashboard') }}" method="GET" class="d-flex" style="width: 200px;">
+                    <input type="text" class="form-control form-control-sm me-2" name="search" placeholder="Search...">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Go</button>
+                </form>
+            </div>
             <div class="card-body">
                 <ul class="list-group">
                     {% for doctor in doctors %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ doctor.name }} ({{ doctor.specialization }})
-                        <a href="{{ url_for('delete_user', user_id=doctor.id) }}"
-                            class="btn btn-danger btn-sm">Delete</a>
+                        <div>
+                            <strong>{{ doctor.name }}</strong><br>
+                            <small class="text-muted">{{ doctor.specialization }} | {{ doctor.email }}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal"
+                                data-bs-target="#editDoctorModal{{ doctor.id }}">Edit</button>
+                            <a href="{{ url_for('delete_user', user_id=doctor.id) }}"
+                                class="btn btn-danger btn-sm">Delete</a>
+                        </div>
                     </li>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editDoctorModal{{ doctor.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Doctor</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <form action="{{ url_for('edit_doctor', doctor_id=doctor.id) }}" method="POST">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Name</label>
+                                            <input type="text" class="form-control" name="name"
+                                                value="{{ doctor.name }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Specialization</label>
+                                            <input type="text" class="form-control" name="specialization"
+                                                value="{{ doctor.specialization }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
                 </ul>
             </div>

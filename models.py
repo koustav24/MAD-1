@@ -12,6 +12,16 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(150), nullable=False)
     specialization = db.Column(db.String(150), nullable=True)  # Only for doctors
 
+class Availability(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    is_booked = db.Column(db.Boolean, default=False)
+
+    doctor = db.relationship('User', backref='availabilities')
+
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

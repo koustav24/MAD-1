@@ -2,7 +2,55 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">Set Availability</div>
+            <div class="card-body">
+                <form action="{{ url_for('set_availability') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" name="date" required min="{{ now_date }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Time</label>
+                                <input type="time" class="form-control" name="start_time" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label">End Time</label>
+                                <input type="time" class="form-control" name="end_time" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add Slot</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">My Availability</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for avail in availabilities %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ avail.date.strftime('%Y-%m-%d') }} | {{ avail.start_time.strftime('%H:%M') }} - {{
+                        avail.end_time.strftime('%H:%M') }}
+                        {% if avail.is_booked %}
+                        <span class="badge bg-danger">Booked</span>
+                        {% else %}
+                        <span class="badge bg-success">Available</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
         <div class="card">
             <div class="card-header bg-success text-white">Assigned Appointments</div>
             <div class="card-body">
@@ -89,4 +137,12 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Set min date to today
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        dateInput.min = new Date().toISOString().split("T")[0];
+    }
+</script>
 {% endblock %}
